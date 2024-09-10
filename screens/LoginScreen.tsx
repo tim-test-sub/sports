@@ -13,12 +13,14 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { login, getProfile } from '@react-native-seoul/kakao-login';
 
 interface Props {
     navigation: StackNavigationProp<any, any>;
     route: RouteProp<any, any>;
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const showAlert = (title: string,message: string) => {
     return new Promise((resolve) => {
         Alert.alert(
@@ -42,8 +44,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             console.log("token:"+token);
           //  const profile = await getProfile();  // 로그인 후 사용자 정보 가져오기
             //await showAlert(`'카카오 로그인 성공'`, `, 닉네임: ${profile?.nickname} \n id:${profile?.id}`);
-
-            navigation.navigate('Main')
+            navigation.replace('Main');
         } catch (err) {
             // @ts-ignore
             Alert.alert('카카오 로그인 실패', err.message);
