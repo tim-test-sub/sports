@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
-const TournamentBracket = () => {
+const MathedView = () => {
     const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
     const handleTeamPress = (team: string) => {
@@ -125,4 +125,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default TournamentBracket;
+export default MathedView;
