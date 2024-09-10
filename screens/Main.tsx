@@ -1,12 +1,16 @@
-import React , { useRef } from 'react';
-import { Animated, PanResponder, View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import React , { useRef ,useState} from 'react';
+import {  Animated, PanResponder, View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';  // useNavigation 추가
 import { Home, Users, Trophy, User } from 'lucide-react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import ClubDetailScreen from './ClubDetailScreen';
 import MathedView from './MathedView';
-import { FAB, Provider as PaperProvider } from 'react-native-paper';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {  Provider as PaperProvider,FAB } from 'react-native-paper';
+import Icons from 'react-native-vector-icons/AntDesign';
+import FriendList from './FriendList.tsx';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -21,33 +25,66 @@ const ClubsStack = () => {
 };
 
 const MainScreen = () => {
+    const pan = useRef(new Animated.ValueXY()).current;
+    const panResponder = useRef(
+        PanResponder.create({
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderMove: Animated.event(
+                [
+                    null,
+                    { dx: pan.x, dy: pan.y }
+                ],
+                { useNativeDriver: false } // 두 번째 인자로 옵션 전달
+            ),
+            onPanResponderRelease: () => {
+                pan.extractOffset();
+            },
+        }),
+    ).current;
     return (
-        <Tab.Navigator
-            screenOptions={({ route }) => ({
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                tabBarIcon: ({ focused, color, size }) => {
-                    let icon;
-                    if (route.name === 'Home') {
-                        icon = <Home size={size} color={color} />;
-                    } else if (route.name === 'Clubs') {
-                        icon = <Users size={size} color={color} />;
-                    } else if (route.name === 'Tournaments') {
-                        icon = <Trophy size={size} color={color} />;
-                    } else if (route.name === 'Profile') {
-                        icon = <User size={size} color={color} />;
-                    }
-                    return icon;
-                },
-                tabBarActiveTintColor: '#1E88E5',
-                tabBarInactiveTintColor: 'gray',
-                tabBarStyle: { backgroundColor: '#ffffff' },
-            })}
-        >
-            <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Clubs" component={ClubDetailScreen} />
-            <Tab.Screen name="Tournaments" component={MathedView} />
-            <Tab.Screen  name="Profile" component={ProfileScreen} />
-        </Tab.Navigator>
+        <PaperProvider>
+            <Tab.Navigator
+                screenOptions={({ route }) => ({
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    tabBarIcon: ({ focused, color, size }) => {
+                        let icon;
+                        if (route.name === 'Home') {
+                            icon = <Home size={size} color={color} />;
+                        } else if (route.name === 'Clubs') {
+                            icon = <Users size={size} color={color} />;
+                        } else if (route.name === 'Tournaments') {
+                            icon = <Trophy size={size} color={color} />;
+                        } else if (route.name === 'Profile') {
+                            icon = <User size={size} color={color} />;
+                        }else if (route.name === 'myFriends') {
+                            icon = <User size={size} color={color} />;
+                        }
+                        return icon;
+                    },
+                    tabBarActiveTintColor: '#1E88E5',
+                    tabBarInactiveTintColor: 'gray',
+                    tabBarStyle: { backgroundColor: '#ffffff' },
+                })}
+            >
+                <Tab.Screen name="Home" component={HomeScreen} />
+                <Tab.Screen name="Clubs" component={ClubDetailScreen} />
+                <Tab.Screen name="Tournaments" component={MathedView} />
+                <Tab.Screen  name="Profile" component={ProfileScreen} />
+                <Tab.Screen  name="myFriends" component={FriendList} />
+
+            </Tab.Navigator>
+            <Animated.View
+                style={{
+                    transform: [{translateX: pan.x}, {translateY: pan.y}],
+                    bottom: 100,
+                }}
+                {...panResponder.panHandlers}>
+
+                <TouchableOpacity style={styles.floatingbtn} onPress={()=>{console.log('hello');}}>
+                    <Icons name='plus' size={30} color='white' />
+                </TouchableOpacity>
+            </Animated.View>
+        </PaperProvider>
     );
 };
 
@@ -69,29 +106,9 @@ const HomeScreen = () => {
         navigation.navigate('Clubs');  // "ClubsScreen"으로 이동
     };
     // 위치를 저장할 Animated.Value 설정
-    const pan = useRef(new Animated.ValueXY()).current;
 
-    // PanResponder 생성: 드래그 제스처를 감지
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onPanResponderMove: Animated.event(
-                [
-                    null,
-                    { dx: pan.x, dy: pan.y } // x, y 축으로 FAB 이동
-                ],
-                { useNativeDriver: false }
-            ),
-            onPanResponderRelease: () => {
-                Animated.spring(pan, {
-                    toValue: { x: 0, y: 0 }, // 드래그 후 원위치로 돌아옴 (필요 시 삭제 가능)
-                    useNativeDriver: false,
-                }).start();
-            },
-        })
-    ).current;
     return (
-        <PaperProvider>
+
         <SafeAreaView style={styles.container}>
             <ScrollView>
                 <View style={styles.section}>
@@ -124,20 +141,9 @@ const HomeScreen = () => {
                     ))}
                 </View>
             </ScrollView>
-            <Animated.View
-                style={{
-                    transform: [{ translateX: pan.x }, { translateY: pan.y }],
-                }}
-                {...panResponder.panHandlers}
-            >
-                <FAB
-                    style={styles.fab}
-                    icon="plus"
-                    onPress={() => console.log('FAB pressed')}
-                />
-            </Animated.View>
+
         </SafeAreaView>
-        </PaperProvider>
+
 
     );
 };
@@ -207,12 +213,24 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
     },
-    fab: {
+    floatingbtn:{
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.2)',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 50,
         position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        backgroundColor: '#6200ea', // FAB의 색상 변경
+        bottom: 5,
+        right: 10,
+        height: 50,
+        backgroundColor: 'black',
+        borderRadius: 100,
+    },
+
+    fabGroup: {
+        position: 'absolute',
+        right: 16,
+        bottom: 16,
     },
 });
 export default MainScreen;
