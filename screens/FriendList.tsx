@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 const FRIEND_ITEM_HEIGHT = 80;
 
 const FriendList = () => {
@@ -13,47 +14,49 @@ const FriendList = () => {
         { id: '3', name: '박지성', status: '자리비움', avatar: 'https://via.placeholder.com/40' },
     ]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentItemId, setCurrentItemId] = useState<string | null>(null); // 아이템 ID를 상태로 저장
 
     const deleteFriend = useCallback((id: string) => {
         setFriends(currentFriends => currentFriends.filter(friend => friend.id !== id));
     }, []);
 
-    // @ts-ignore
-    const renderFriendItem = useCallback(({ item }) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const translateX = useSharedValue(0);
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const itemHeight = useSharedValue(FRIEND_ITEM_HEIGHT);
+    const translateX = useSharedValue(0);
+    const itemHeight = useSharedValue(FRIEND_ITEM_HEIGHT);
 
-        const panGesture = Gesture.Pan()
-            .onUpdate((event) => {
-                translateX.value = event.translationX;
-            })
-            .onEnd(() => {
-                const shouldBeDismissed = translateX.value < -100;
-                if (shouldBeDismissed) {
-                    translateX.value = withTiming(-1000);
-                    itemHeight.value = withTiming(0, {}, (isFinished) => {
-                        if (isFinished) {
-                            runOnJS(deleteFriend)(item.id);
-                        }
-                    });
-                } else {
-                    translateX.value = withTiming(0);
-                }
-            });
+    const rStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: translateX.value }],
+    }));
 
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const rStyle = useAnimatedStyle(() => ({
-            transform: [{ translateX: translateX.value }],
-        }));
+    const rContainerStyle = useAnimatedStyle(() => ({
+        height: itemHeight.value,
+        marginBottom: itemHeight.value === 0 ? 0 : 10,
+    }));
 
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const rContainerStyle = useAnimatedStyle(() => ({
-            height: itemHeight.value,
-            marginBottom: itemHeight.value === 0 ? 0 : 10,
-        }));
+    // panGesture 내부에 onStart 핸들러를 추가하여 제스처 시작 시 item ID를 설정
+    const panGesture = Gesture.Pan()
+        .onBegin(() => {
+            if (currentItemId !== null) {
+                setCurrentItemId(currentItemId); // currentItemId가 설정됨
+            }
+        })
+        .onUpdate((event) => {
+            translateX.value = event.translationX;
+        })
+        .onEnd(() => {
+            const shouldBeDismissed = translateX.value < -100;
+            if (shouldBeDismissed && currentItemId !== null) { // currentItemId가 null이 아닐 때 처리
+                translateX.value = withTiming(-1000);
+                itemHeight.value = withTiming(0, {}, (isFinished) => {
+                    if (isFinished) {
+                        runOnJS(deleteFriend)(currentItemId); // currentItemId를 전달
+                    }
+                });
+            } else {
+                translateX.value = withTiming(0);
+            }
+        });
 
+    const renderFriendItem = useCallback(({ item }: { item: { id: string; name: string; status: string; avatar: string } }) => {
         const getStatusColor = (status: string) => {
             switch (status) {
                 case '온라인': return '#4CAF50';
@@ -80,7 +83,7 @@ const FriendList = () => {
                 </GestureDetector>
             </Animated.View>
         );
-    }, [deleteFriend]);
+    }, [deleteFriend, rStyle, rContainerStyle, panGesture]);
 
     const filteredFriends = friends.filter(friend =>
         friend.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -90,7 +93,7 @@ const FriendList = () => {
         <GestureHandlerRootView style={styles.container}>
             <Text style={styles.title}>친구 목록</Text>
             <View style={styles.searchContainer}>
-               <FontAwesome name="comments" size={20} color="#999" style={styles.searchIcon} />
+                <FontAwesome name="comments" size={20} color="#999" style={styles.searchIcon} />
                 <TextInput
                     style={styles.searchInput}
                     placeholder="친구 검색..."
