@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import React , { useRef } from 'react';
+import { Animated, PanResponder, View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';  // useNavigation 추가
 import { Home, Users, Trophy, User } from 'lucide-react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import ClubDetailScreen from './ClubDetailScreen';
 import MathedView from './MathedView';
-
+import { FAB, Provider as PaperProvider } from 'react-native-paper';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -51,21 +51,47 @@ const MainScreen = () => {
     );
 };
 
+
 const HomeScreen = () => {
     const navigation = useNavigation();  // navigation 객체 사용
 
     const handleClubPress = (clubId: any) => {
         // @ts-ignore
         console.log(clubId);
+
+        //'SettingsTab', { screen: 'DetailSettings' }
         // @ts-ignore
-        navigation.navigate('ClubDetailScreen', { clubId });  // "ClubDetail"으로 이동
+        navigation.navigate('Clubs', {screen:'ClubDetailScreen' });  // "ClubDetail"으로 이동
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleTournaments = () => {
         // @ts-ignore
         navigation.navigate('Clubs');  // "ClubsScreen"으로 이동
     };
+    // 위치를 저장할 Animated.Value 설정
+    const pan = useRef(new Animated.ValueXY()).current;
+
+    // PanResponder 생성: 드래그 제스처를 감지
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: Animated.event(
+                [
+                    null,
+                    { dx: pan.x, dy: pan.y } // x, y 축으로 FAB 이동
+                ],
+                { useNativeDriver: false }
+            ),
+            onPanResponderRelease: () => {
+                Animated.spring(pan, {
+                    toValue: { x: 0, y: 0 }, // 드래그 후 원위치로 돌아옴 (필요 시 삭제 가능)
+                    useNativeDriver: false,
+                }).start();
+            },
+        })
+    ).current;
     return (
+        <PaperProvider>
         <SafeAreaView style={styles.container}>
             <ScrollView>
                 <View style={styles.section}>
@@ -98,7 +124,21 @@ const HomeScreen = () => {
                     ))}
                 </View>
             </ScrollView>
+            <Animated.View
+                style={{
+                    transform: [{ translateX: pan.x }, { translateY: pan.y }],
+                }}
+                {...panResponder.panHandlers}
+            >
+                <FAB
+                    style={styles.fab}
+                    icon="plus"
+                    onPress={() => console.log('FAB pressed')}
+                />
+            </Animated.View>
         </SafeAreaView>
+        </PaperProvider>
+
     );
 };
 
@@ -167,5 +207,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
     },
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#6200ea', // FAB의 색상 변경
+    },
 });
 export default MainScreen;
+
