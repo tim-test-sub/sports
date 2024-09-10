@@ -21,6 +21,8 @@
     <string>SimpleLineIcons.ttf</string>
     <string>Octicons.ttf</string>
     <string>Zocial.ttf</string>
+    <string>FontAwesome.ttf</string>
+    <string>Feather.ttf</string>
   </array>
 	<key>CFBundleDisplayName</key>
 	<string>MyBadmintonApp</string>

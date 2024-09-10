@@ -1,9 +1,12 @@
+import 'react-native-gesture-handler';
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import React , { useRef ,useState} from 'react';
 import {  Animated, PanResponder, View, Text, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';  // useNavigation 추가
 import { Home, Users, Trophy, User } from 'lucide-react-native';
+
 import { createStackNavigator } from '@react-navigation/stack';
 import ClubDetailScreen from './ClubDetailScreen';
 import MathedView from './MathedView';
@@ -11,15 +14,22 @@ import MathedView from './MathedView';
 import {  Provider as PaperProvider,FAB } from 'react-native-paper';
 import Icons from 'react-native-vector-icons/AntDesign';
 import FriendList from './FriendList.tsx';
+import BadmintonClubList from './BadmintonClubList.tsx';
+import  MapScreen  from './MapScreen';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const ClubsStack = () => {
+
+    // @ts-ignore
     return (
         <Stack.Navigator>
-            <Stack.Screen name="ClubMain" component={ClubsScreen} />
+            <Stack.Screen name="BadmintonClubList" component={BadmintonClubList} />
             <Stack.Screen name="ClubDetailScreen" component={ClubDetailScreen} />
+            <Stack.Screen name="MapScreen" component={MapScreen} />
         </Stack.Navigator>
     );
 };
@@ -67,7 +77,7 @@ const MainScreen = () => {
                 })}
             >
                 <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Clubs" component={ClubDetailScreen} />
+                <Tab.Screen name="Clubs" component={ClubsStack} />
                 <Tab.Screen name="Tournaments" component={MathedView} />
                 <Tab.Screen  name="Profile" component={ProfileScreen} />
                 <Tab.Screen  name="myFriends" component={FriendList} />
@@ -148,12 +158,7 @@ const HomeScreen = () => {
     );
 };
 
-const ClubsScreen = () => (
-    <View style={styles.screenContainer}>
-        <Text style={styles.screenTitle}>Clubs</Text>
-        <Text>Clubs content goes here</Text>
-    </View>
-);
+
 
 const ProfileScreen = () => (
     <View style={styles.screenContainer}>

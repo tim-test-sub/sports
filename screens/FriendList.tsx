@@ -73,7 +73,7 @@ const FriendList = () => {
                             <Text style={[styles.status, { color: getStatusColor(item.status) }]}>{item.status}</Text>
                         </View>
                         <TouchableOpacity style={styles.chatButton} onPress={() => console.log('Chat with', item.name)}>
-                            <FontAwesome name="message-circle" size={20} color="#007AFF" />
+                            <FontAwesome name="comments" size={20} color="#007AFF" />
                             <Text style={styles.chatButtonText}>채팅하기</Text>
                         </TouchableOpacity>
                     </Animated.View>
@@ -90,7 +90,7 @@ const FriendList = () => {
         <GestureHandlerRootView style={styles.container}>
             <Text style={styles.title}>친구 목록</Text>
             <View style={styles.searchContainer}>
-                <FontAwesome name="search" size={20} color="#999" style={styles.searchIcon} />
+               <FontAwesome name="comments" size={20} color="#999" style={styles.searchIcon} />
                 <TextInput
                     style={styles.searchInput}
                     placeholder="친구 검색..."
@@ -98,7 +98,11 @@ const FriendList = () => {
                     onChangeText={setSearchTerm}
                 />
             </View>
-            {filteredFriends.map(friend => renderFriendItem({ item: friend }))}
+            {filteredFriends.map(friend => (
+                <View key={friend.id}>
+                    {renderFriendItem({ item: friend })}
+                </View>
+            ))}
         </GestureHandlerRootView>
     );
 };
