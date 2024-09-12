@@ -1,157 +1,128 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 
-const { width, height } = Dimensions.get('window');
+const MathedView = () => {
+    const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
-// 각 라운드의 매치를 정의하는 인터페이스
-interface Match {
-    teamA: string | null;
-    teamB: string | null;
-}
-
-// 팀 수에 맞춰 라운드를 생성하는 함수
-const generateRounds = (teams: (string | null)[]): { rounds: Match[][] } => {
-    const rounds: { rounds: Match[][] } = { rounds: [] };
-    let currentRoundTeams = teams;
-
-    // 부전승 처리
-    if (currentRoundTeams.length % 2 !== 0) {
-        currentRoundTeams.push(null); // 홀수일 경우 부전승 팀 추가
-    }
-
-    // 각 라운드 생성
-    while (currentRoundTeams.length > 1) {
-        const nextRound: Match[] = [];
-        for (let i = 0; i < currentRoundTeams.length; i += 2) {
-            nextRound.push({
-                teamA: currentRoundTeams[i],
-                teamB: currentRoundTeams[i + 1],
-            });
-        }
-        rounds.rounds.push(nextRound);
-
-        // 승리한 팀만 다음 라운드로 진출
-        currentRoundTeams = nextRound.map((match) =>
-            match.teamA && match.teamB ? `Winner of Match ${match.teamA} vs ${match.teamB}` : match.teamA || match.teamB
-        );
-    }
-
-    return rounds;
-};
-
-// 팀 리스트
-const teams = [
-    'Team A', 'Team B', 'Team C', 'Team D',
-    'Team E', 'Team F', 'Team G', 'Team H',
-    'Team I', 'Team J', 'Team K', 'Team L',
-    'Team M', 'Team N', 'Team O', 'Team P'
-];
-
-// 대진표를 생성
-const teamsData = generateRounds(teams);
-
-const getRoundTitle = (roundIndex: number, totalRounds: number) => {
-    const roundsTitles = ['결승', '4강', '8강', '16강'];
-    return roundsTitles[totalRounds - roundIndex - 1];
-};
-
-const TournamentBracket = () => {
-    const renderMatch = (teamA: string | null, teamB: string | null) => (
-        <View style={styles.match}>
-            <Text style={styles.team}>{teamA ?? 'BYE'}</Text>
-            <Text style={styles.vs}>vs</Text>
-            <Text style={styles.team}>{teamB ?? 'BYE'}</Text>
-        </View>
-    );
+    const handleTeamPress = (team: string) => {
+        setSelectedTeam(team);
+    };
 
     return (
-        <ScrollView horizontal contentContainerStyle={styles.container}>
-            <View style={styles.roundContainer}>
-                {teamsData.rounds.map((round, roundIndex) => (
-                    <View key={roundIndex} style={styles.round}>
-                        <Text style={styles.roundTitle}>{getRoundTitle(roundIndex, teamsData.rounds.length)}</Text>
-                        {round.map((match, index) => (
-                            <View key={index} style={styles.matchContainer}>
-                                {renderMatch(match.teamA, match.teamB)}
-                            </View>
-                        ))}
-                    </View>
-                ))}
+        <ScrollView contentContainerStyle={styles.container}>
+            <Text style={styles.title}>8팀 토너먼트 대진표</Text>
+            <View style={styles.bracketContainer}>
+                <View style={styles.round}>
+                    <Match team1="팀 1" team2="팀 2" onPress={handleTeamPress} />
+                    <Match team1="팀 3" team2="팀 4" onPress={handleTeamPress} />
+                    <Match team1="팀 5" team2="팀 6" onPress={handleTeamPress} />
+                    <Match team1="팀 7" team2="팀 8" onPress={handleTeamPress} />
+                </View>
+                <View style={styles.round}>
+                    <Match team1="승자 1-2" team2="승자 3-4" onPress={handleTeamPress} />
+                    <Match team1="승자 5-6" team2="승자 7-8" onPress={handleTeamPress} />
+                </View>
+                <View style={styles.round}>
+                    <Match team1="결승진출 1" team2="결승진출 2" onPress={handleTeamPress} />
+                </View>
+                <View style={styles.winner}>
+                    <Text style={styles.winnerText}>우승팀</Text>
+                </View>
             </View>
+
+            {selectedTeam && (
+                <View style={styles.teamInfo}>
+                    <Text style={styles.teamInfoText}>선택된 팀: {selectedTeam}</Text>
+                    <Text style={styles.teamInfoText}>여기에 팀에 대한 자세한 정보를 표시하세요.</Text>
+                </View>
+            )}
         </ScrollView>
     );
 };
 
+const Match = ({ team1, team2, onPress }: { team1: string, team2: string, onPress: (team: string) => void }) => (
+    <View style={styles.match}>
+        <TouchableOpacity onPress={() => onPress(team1)} style={styles.teamContainer}>
+            <Text style={styles.teamText}>{team1}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onPress(team2)} style={styles.teamContainer}>
+            <Text style={styles.teamText}>{team2}</Text>
+        </TouchableOpacity>
+    </View>
+);
+
 const styles = StyleSheet.create({
     container: {
-        flexDirection: 'row',
-        paddingVertical: 20,
-        minWidth: width * 2,
-        minHeight: height,
+        flex: 1,
+        padding: 16,
+        backgroundColor: '#f3f3f3',
+        minHeight: '100%',
     },
-    roundContainer: {
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        textAlign: 'center',
+        color: '#1e40af',
+    },
+    bracketContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 30,
+        alignItems: 'center',
     },
     round: {
         flexDirection: 'column',
-        marginVertical: 20,
-        width: 240,
-        alignItems: 'center',
-        paddingVertical: 30,
-        paddingHorizontal: 10,
-        borderRadius: 12,
-        backgroundColor: '#f0f0f0',
+        justifyContent: 'center',
+    },
+    match: {
+        marginBottom: 16,
+    },
+    teamContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 8,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        marginBottom: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
-        shadowRadius: 6,
+        shadowRadius: 4,
         elevation: 4,
-        overflow: 'hidden',
     },
-    roundTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 20,
+    teamText: {
+        textAlign: 'center',
+        fontSize: 16,
     },
-    matchContainer: {
-        alignItems: 'center',
-        marginBottom: 40,
-        width: '100%',
-    },
-    match: {
-        flexDirection: 'column',
+    winner: {
         justifyContent: 'center',
         alignItems: 'center',
-        width: '100%',
+        marginTop: 24,
+    },
+    winnerText: {
+        backgroundColor: '#fbbf24',
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 18,
+        padding: 12,
+        borderRadius: 8,
+        textAlign: 'center',
+    },
+    teamInfo: {
+        marginTop: 32,
         padding: 16,
-        backgroundColor: '#ffffff',
-        borderRadius: 15,
+        backgroundColor: '#fff',
+        borderRadius: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 6,
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
         elevation: 4,
-        marginVertical: 10,
-        overflow: 'hidden',
     },
-    vs: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#555',
-        marginVertical: 10,
+    teamInfoText: {
+        fontSize: 16,
+        color: '#333',
     },
-    team: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#444',
-        lineHeight: 24,
-        textAlign: 'center',
-        flexWrap: 'wrap',
-        overflow: 'hidden',
-    }
 });
 
-export default TournamentBracket;
+export default MathedView;
